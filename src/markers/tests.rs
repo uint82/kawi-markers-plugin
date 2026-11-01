@@ -10,6 +10,8 @@ fn finds_markers_with_utf8_byte_columns() {
             line: 0,
             badge_start: 3,
             badge_end: 7,
+            colon_start: 7,
+            colon_end: 7,
             text_start: 8,
             text_end: 17,
             kind: Kind::Todo,
@@ -21,6 +23,8 @@ fn finds_markers_with_utf8_byte_columns() {
             line: 0,
             badge_start: 12,
             badge_end: 17,
+            colon_start: 17,
+            colon_end: 17,
             text_start: 17,
             text_end: 17,
             kind: Kind::Fixme,
@@ -32,6 +36,8 @@ fn finds_markers_with_utf8_byte_columns() {
             line: 1,
             badge_start: 0,
             badge_end: 4,
+            colon_start: 4,
+            colon_end: 4,
             text_start: 4,
             text_end: 4,
             kind: Kind::Note,
@@ -58,7 +64,9 @@ fn colon_adds_badge_padding_and_a_text_span() {
         Marker {
             line: 0,
             badge_start: 0,
-            badge_end: 6,
+            badge_end: 5,
+            colon_start: 4,
+            colon_end: 5,
             text_start: 6,
             text_end: 9,
             kind: Kind::Todo,
@@ -74,7 +82,9 @@ fn badge_padding_includes_one_surrounding_space() {
         Marker {
             line: 0,
             badge_start: 0,
-            badge_end: 7,
+            badge_end: 6,
+            colon_start: 5,
+            colon_end: 6,
             text_start: 8,
             text_end: 11,
             kind: Kind::Todo,
@@ -86,6 +96,8 @@ fn badge_padding_includes_one_surrounding_space() {
 fn colon_without_text_has_an_empty_text_span() {
     let markers = scan("TODO:");
     assert_eq!(markers[0].badge_end, 5);
+    assert_eq!(markers[0].colon_start, 4);
+    assert_eq!(markers[0].colon_end, 5);
     assert_eq!(markers[0].text_start, 5);
     assert_eq!(markers[0].text_end, 5);
 }
@@ -95,6 +107,8 @@ fn markers_without_a_colon_keep_the_keyword_badge() {
     let markers = scan("TODO fix");
     assert_eq!(markers[0].badge_start, 0);
     assert_eq!(markers[0].badge_end, 4);
+    assert_eq!(markers[0].colon_start, 4);
+    assert_eq!(markers[0].colon_end, 4);
     assert_eq!(markers[0].text_start, 5);
     assert_eq!(markers[0].text_end, 8);
 }
@@ -103,7 +117,9 @@ fn markers_without_a_colon_keep_the_keyword_badge() {
 fn colon_may_be_separated_by_spaces() {
     let markers = scan("TODO : fix");
     assert_eq!(markers[0].badge_start, 0);
-    assert_eq!(markers[0].badge_end, 7);
+    assert_eq!(markers[0].badge_end, 6);
+    assert_eq!(markers[0].colon_start, 5);
+    assert_eq!(markers[0].colon_end, 6);
     assert_eq!(markers[0].text_start, 7);
     assert_eq!(markers[0].text_end, 10);
 }
@@ -112,7 +128,9 @@ fn colon_may_be_separated_by_spaces() {
 fn utf8_prefixes_shift_badge_and_text_spans() {
     let markers = scan("é TODO: fix");
     assert_eq!(markers[0].badge_start, 2);
-    assert_eq!(markers[0].badge_end, 9);
+    assert_eq!(markers[0].badge_end, 8);
+    assert_eq!(markers[0].colon_start, 7);
+    assert_eq!(markers[0].colon_end, 8);
     assert_eq!(markers[0].text_start, 9);
     assert_eq!(markers[0].text_end, 12);
 }

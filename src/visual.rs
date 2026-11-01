@@ -55,6 +55,14 @@ fn push_marker(decorations: &mut Vec<Decoration>, marker: &Marker) {
         marker.badge_start,
         marker.badge_end,
     ));
+    if marker.colon_start < marker.colon_end {
+        decorations.push(highlight(
+            marker,
+            marker.kind.colon_group(),
+            marker.colon_start,
+            marker.colon_end,
+        ));
+    }
     if marker.text_start < marker.text_end {
         decorations.push(highlight(
             marker,
@@ -107,15 +115,25 @@ mod tests {
     fn builds_badge_and_text_highlights() {
         let markers = scan("TODO: fix");
         let decorations = decorations(&markers, &Counts::from_markers(&markers), true);
-        assert_eq!(groups(&decorations), vec!["todo", "todo_text", "todo"]);
+        assert_eq!(
+            groups(&decorations),
+            vec!["todo", "todo_colon", "todo_text", "todo"]
+        );
         match &decorations[0] {
             Decoration::Highlight(highlight) => {
                 assert_eq!(highlight.start.byte_column, 0);
-                assert_eq!(highlight.end.byte_column, 6);
+                assert_eq!(highlight.end.byte_column, 5);
             }
             Decoration::VirtualText(_) => panic!("expected highlight"),
         }
         match &decorations[1] {
+            Decoration::Highlight(highlight) => {
+                assert_eq!(highlight.start.byte_column, 4);
+                assert_eq!(highlight.end.byte_column, 5);
+            }
+            Decoration::VirtualText(_) => panic!("expected highlight"),
+        }
+        match &decorations[2] {
             Decoration::Highlight(highlight) => {
                 assert_eq!(highlight.start.byte_column, 6);
                 assert_eq!(highlight.end.byte_column, 9);
@@ -134,11 +152,22 @@ mod tests {
     }
 
     #[test]
+    fn markers_without_a_colon_have_no_colon_highlight() {
+        let markers = scan("TODO fix");
+        let counts = Counts::from_markers(&markers);
+        let decorations = decorations(&markers, &counts, false);
+        assert_eq!(groups(&decorations), vec!["todo", "todo_text"]);
+    }
+
+    #[test]
     fn virtual_text_can_be_disabled() {
         let markers = scan("TODO: fix");
         let counts = Counts::from_markers(&markers);
         let decorations = decorations(&markers, &counts, false);
-        assert_eq!(groups(&decorations), vec!["todo", "todo_text"]);
+        assert_eq!(
+            groups(&decorations),
+            vec!["todo", "todo_colon", "todo_text"]
+        );
     }
 
     #[test]
@@ -153,6 +182,7 @@ mod tests {
     #[test]
     fn kind_groups_are_stable() {
         assert_eq!(Kind::Todo.group(), "todo");
+        assert_eq!(Kind::Todo.colon_group(), "todo_colon");
         assert_eq!(Kind::Todo.text_group(), "todo_text");
         assert_eq!(Kind::Fixme.group(), "fixme");
     }

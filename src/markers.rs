@@ -34,6 +34,16 @@ impl Kind {
         }
     }
 
+    pub fn colon_group(self) -> &'static str {
+        match self {
+            Self::Note => "note_colon",
+            Self::Xxx => "xxx_colon",
+            Self::Todo => "todo_colon",
+            Self::Hack => "hack_colon",
+            Self::Fixme => "fixme_colon",
+        }
+    }
+
     pub fn text_group(self) -> &'static str {
         match self {
             Self::Note => "note_text",
@@ -60,6 +70,8 @@ pub struct Marker {
     pub line: u32,
     pub badge_start: u32,
     pub badge_end: u32,
+    pub colon_start: u32,
+    pub colon_end: u32,
     pub text_start: u32,
     pub text_end: u32,
     pub kind: Kind,
@@ -186,9 +198,14 @@ fn collect_line(line: u32, text: &str, kind: Kind, markers: &mut Vec<Marker>) {
 
 fn marker(line: u32, text: &str, kind: Kind, start: usize, end: usize) -> Option<Marker> {
     let colon_end = colon_end(text, end);
-    let (badge_start, badge_end) = match colon_end {
-        Some(colon_end) => badge_bounds(text, start, colon_end),
-        None => (start, end),
+    let (badge_start, badge_end, colon_start, colon_end) = match colon_end {
+        Some(colon_end) => (
+            badge_start(text, start),
+            colon_end,
+            colon_end - 1,
+            colon_end,
+        ),
+        None => (start, end, end, end),
     };
     let text_start = skip_whitespace(text, badge_end);
     let text_end = text.trim_end().len();
@@ -196,6 +213,8 @@ fn marker(line: u32, text: &str, kind: Kind, start: usize, end: usize) -> Option
         line,
         badge_start: u32::try_from(badge_start).ok()?,
         badge_end: u32::try_from(badge_end).ok()?,
+        colon_start: u32::try_from(colon_start).ok()?,
+        colon_end: u32::try_from(colon_end).ok()?,
         text_start: u32::try_from(text_start).ok()?,
         text_end: u32::try_from(text_end).ok()?,
         kind,
@@ -211,25 +230,15 @@ fn colon_end(text: &str, end: usize) -> Option<usize> {
         .then_some(end + colon + 1)
 }
 
-fn badge_bounds(text: &str, start: usize, colon_end: usize) -> (usize, usize) {
+fn badge_start(text: &str, start: usize) -> usize {
     let leading = preceding_padding(text, start);
-    let trailing = following_padding(text, colon_end);
-    (start - leading, colon_end + trailing)
+    start - leading
 }
 
 fn preceding_padding(text: &str, start: usize) -> usize {
     text[..start]
         .chars()
         .next_back()
-        .filter(|character| character.is_whitespace())
-        .map(char::len_utf8)
-        .unwrap_or(0)
-}
-
-fn following_padding(text: &str, end: usize) -> usize {
-    text[end..]
-        .chars()
-        .next()
         .filter(|character| character.is_whitespace())
         .map(char::len_utf8)
         .unwrap_or(0)
