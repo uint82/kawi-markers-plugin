@@ -1,6 +1,6 @@
 [package]
 name = "markers"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 description = "Highlight TODO-style markers in Kawi"
 license = "GPL-3.0-or-later"
