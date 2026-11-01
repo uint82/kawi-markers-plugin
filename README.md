@@ -33,7 +33,7 @@ If this plugin is published at `github.com/OWNER/kawi-markers-plugin`, install i
 To install a specific release:
 
 ```text
-:plugin install OWNER/kawi-markers-plugin@v0.1.0
+:plugin install OWNER/kawi-markers-plugin@v0.1.1
 ```
 
 Replace `OWNER` with the GitHub account that owns the repository.
