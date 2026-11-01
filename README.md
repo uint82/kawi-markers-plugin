@@ -12,7 +12,7 @@ The plugin scans the current buffer for these uppercase markers:
 - `NOTE`
 - `XXX`
 
-Each marker gets a padded badge, and the rest of the comment is shown in the same color with italics. Lines with markers get one gutter sign. The status line shows the total marker count while the buffer has at least one marker.
+Each marker gets a padded badge with the colon blended into its background, and the rest of the comment is shown in the same color with italics. Lines with markers get one gutter sign. The status line shows the total marker count while the buffer has at least one marker.
 
 The plugin adds one command:
 
@@ -33,7 +33,7 @@ If this plugin is published at `github.com/OWNER/kawi-markers-plugin`, install i
 To install a specific release:
 
 ```text
-:plugin install OWNER/kawi-markers-plugin@v0.1.2
+:plugin install OWNER/kawi-markers-plugin@v0.1.3
 ```
 
 Replace `OWNER` with the GitHub account that owns the repository.
