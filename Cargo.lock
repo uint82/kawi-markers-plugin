@@ -67,9 +67,9 @@ checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
 name = "kawi-plugin-sdk"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b00acc325cc9ef51b3f9619e978170fc2ffda9387b727b66869565f1fb153a40"
+checksum = "5bc84337e3ea792d2bb13b15e55a1cdfdd5028f1cec04a5156b2c6a5e557186e"
 dependencies = [
  "wit-bindgen",
 ]
@@ -99,7 +99,7 @@ dependencies = [
 
 [[package]]
 name = "markers"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "kawi-plugin-sdk",
 ]
