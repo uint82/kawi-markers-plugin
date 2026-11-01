@@ -1,15 +1,15 @@
 name = "markers"
-version = "0.1.0"
+version = "0.1.1"
 protocol = 1
 runtime = "wasm"
 description = "Highlight TODO markers, add gutter signs, and show marker counts"
 component = "markers.wasm"
-sha256 = "sha256:bfbfae50f451c22907a82a792eadd5f684db20eed8613e77f71be852f3ac616c"
+sha256 = "sha256:76a89828e3ae6457e7027a4ae7b68154a9a19329e93fcab834b162a8a5a148c2"
 timeout_ms = 5000
 subscribes = ["buffer_changed", "buffer_opened", "file_opened", "file_saved", "buffer_closed"]
 
 [debounce]
-buffer_changed = 200
+buffer_changed = 50
 
 [capabilities]
 "editor.read" = true
