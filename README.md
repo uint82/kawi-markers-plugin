@@ -12,7 +12,7 @@ The plugin scans the current buffer for these uppercase markers:
 - `NOTE`
 - `XXX`
 
-Each marker is highlighted with a style that matches its kind. Lines with markers get one gutter sign. The status line shows the total marker count while the buffer has at least one marker.
+Each marker gets a padded badge, and the rest of the comment is shown in the same color with italics. Lines with markers get one gutter sign. The status line shows the total marker count while the buffer has at least one marker.
 
 The plugin adds one command:
 
@@ -33,7 +33,7 @@ If this plugin is published at `github.com/OWNER/kawi-markers-plugin`, install i
 To install a specific release:
 
 ```text
-:plugin install OWNER/kawi-markers-plugin@v0.1.1
+:plugin install OWNER/kawi-markers-plugin@v0.1.2
 ```
 
 Replace `OWNER` with the GitHub account that owns the repository.
@@ -82,6 +82,6 @@ The plugin does not write to the buffer, read files, spawn processes, or use the
 
 - Plugin API: 1
 - Runtime: WebAssembly
-- SDK: `kawi-plugin-sdk` 0.4.0
+- SDK: `kawi-plugin-sdk` 0.5.0
 
 For local development and release steps, see [DEVELOPING.md](DEVELOPING.md).

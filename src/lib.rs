@@ -1,13 +1,12 @@
 use kawi_plugin_sdk::exports::kawi::plugin::lifecycle::Guest;
-use kawi_plugin_sdk::types::{
-    Argument, Decoration, Error, Event, Highlight, Position, SettingValue, State, VirtualText,
-};
+use kawi_plugin_sdk::types::{Argument, Error, Event, SettingValue, State};
 use kawi_plugin_sdk::{
     config_read, editor_decorations, editor_read, editor_signs, ui_message, ui_statusline,
     INVALID_PARAMS, STALE_REVISION,
 };
 
 mod markers;
+mod visual;
 
 use markers::{Counts, Marker};
 
@@ -16,7 +15,6 @@ const COMMAND_ID: &str = "scan";
 const SHOW_SIGNS: &str = "show_signs";
 const SHOW_VIRTUAL_TEXT: &str = "show_virtual_text";
 const STALE_RETRY_LIMIT: usize = 2;
-const STATUSLINE_PRIORITY: u32 = 20;
 
 struct Plugin;
 
@@ -81,66 +79,13 @@ fn refresh_once() -> Result<Counts, Error> {
 }
 
 fn publish(state: &State, markers: &[Marker], counts: &Counts) -> Result<(), Error> {
-    let decorations = decorations(markers, counts);
+    let decorations = visual::decorations(markers, counts, setting_bool(SHOW_VIRTUAL_TEXT, true));
     editor_decorations::set(state.buffer, state.revision, &decorations)?;
-    let signs = signs(markers);
+    let signs = visual::signs(markers, setting_bool(SHOW_SIGNS, true));
     editor_signs::set(state.buffer, state.revision, &signs)?;
-    let statusline = statusline(counts);
+    let statusline = visual::statusline(counts);
     ui_statusline::set(&statusline)?;
     Ok(())
-}
-
-fn decorations(markers: &[Marker], counts: &Counts) -> Vec<Decoration> {
-    let mut decorations = markers.iter().map(highlight).collect::<Vec<_>>();
-    if counts.total() > 0 && setting_bool(SHOW_VIRTUAL_TEXT, true) {
-        if let Some(marker) = markers.first() {
-            decorations.push(Decoration::VirtualText(VirtualText {
-                line: marker.line,
-                text: counts.message(),
-                style: counts.style(),
-            }));
-        }
-    }
-    decorations
-}
-
-fn highlight(marker: &Marker) -> Decoration {
-    Decoration::Highlight(Highlight {
-        start: Position {
-            line: marker.line,
-            byte_column: marker.start,
-        },
-        end: Position {
-            line: marker.line,
-            byte_column: marker.end,
-        },
-        style: marker.kind.style(),
-    })
-}
-
-fn signs(markers: &[Marker]) -> Vec<editor_signs::Sign> {
-    if markers.is_empty() || !setting_bool(SHOW_SIGNS, true) {
-        return Vec::new();
-    }
-    markers::sign_lines(markers)
-        .into_iter()
-        .map(|(line, kind)| editor_signs::Sign {
-            line,
-            text: kind.sign().to_string(),
-            style: kind.style(),
-        })
-        .collect()
-}
-
-fn statusline(counts: &Counts) -> Vec<ui_statusline::StatuslineSegment> {
-    if counts.total() == 0 {
-        return Vec::new();
-    }
-    vec![ui_statusline::StatuslineSegment {
-        text: counts.status_text(),
-        style: counts.style(),
-        priority: STATUSLINE_PRIORITY,
-    }]
 }
 
 fn setting_bool(key: &str, default: bool) -> bool {
