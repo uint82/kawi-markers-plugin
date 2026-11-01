@@ -1,6 +1,6 @@
 [package]
 name = "markers"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "Highlight TODO-style markers in Kawi"
 license = "GPL-3.0-or-later"
@@ -10,6 +10,6 @@ rust-version = "1.98.0"
 crate-type = ["cdylib"]
 
 [dependencies]
-kawi-plugin-sdk = "0.4.0"
+kawi-plugin-sdk = "0.5.0"
 
 [workspace]

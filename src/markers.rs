@@ -24,13 +24,23 @@ impl Kind {
         }
     }
 
-    pub fn style(self) -> DecorationStyle {
+    pub fn group(self) -> &'static str {
         match self {
-            Self::Note => DecorationStyle::Success,
-            Self::Xxx => DecorationStyle::Accent,
-            Self::Todo => DecorationStyle::Info,
-            Self::Hack => DecorationStyle::Warning,
-            Self::Fixme => DecorationStyle::Error,
+            Self::Note => "note",
+            Self::Xxx => "xxx",
+            Self::Todo => "todo",
+            Self::Hack => "hack",
+            Self::Fixme => "fixme",
+        }
+    }
+
+    pub fn text_group(self) -> &'static str {
+        match self {
+            Self::Note => "note_text",
+            Self::Xxx => "xxx_text",
+            Self::Todo => "todo_text",
+            Self::Hack => "hack_text",
+            Self::Fixme => "fixme_text",
         }
     }
 
@@ -48,8 +58,10 @@ impl Kind {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Marker {
     pub line: u32,
-    pub start: u32,
-    pub end: u32,
+    pub badge_start: u32,
+    pub badge_end: u32,
+    pub text_start: u32,
+    pub text_end: u32,
     pub kind: Kind,
 }
 
@@ -140,7 +152,7 @@ pub fn scan(text: &str) -> Vec<Marker> {
             collect_line(line_number, line, kind, &mut markers);
         }
     }
-    markers.sort_by_key(|marker| (marker.line, marker.start));
+    markers.sort_by_key(|marker| (marker.line, marker.badge_start));
     markers
 }
 
@@ -165,19 +177,70 @@ fn collect_line(line: u32, text: &str, kind: Kind, markers: &mut Vec<Marker>) {
         if !has_word_boundaries(text, start, end) {
             continue;
         }
-        let Ok(start) = u32::try_from(start) else {
+        let Some(marker) = marker(line, text, kind, start, end) else {
             continue;
         };
-        let Ok(end) = u32::try_from(end) else {
-            continue;
-        };
-        markers.push(Marker {
-            line,
-            start,
-            end,
-            kind,
-        });
+        markers.push(marker);
     }
+}
+
+fn marker(line: u32, text: &str, kind: Kind, start: usize, end: usize) -> Option<Marker> {
+    let colon_end = colon_end(text, end);
+    let (badge_start, badge_end) = match colon_end {
+        Some(colon_end) => badge_bounds(text, start, colon_end),
+        None => (start, end),
+    };
+    let text_start = skip_whitespace(text, badge_end);
+    let text_end = text.trim_end().len();
+    Some(Marker {
+        line,
+        badge_start: u32::try_from(badge_start).ok()?,
+        badge_end: u32::try_from(badge_end).ok()?,
+        text_start: u32::try_from(text_start).ok()?,
+        text_end: u32::try_from(text_end).ok()?,
+        kind,
+    })
+}
+
+fn colon_end(text: &str, end: usize) -> Option<usize> {
+    let after = &text[end..];
+    let colon = after.find(':')?;
+    after[..colon]
+        .chars()
+        .all(char::is_whitespace)
+        .then_some(end + colon + 1)
+}
+
+fn badge_bounds(text: &str, start: usize, colon_end: usize) -> (usize, usize) {
+    let leading = preceding_padding(text, start);
+    let trailing = following_padding(text, colon_end);
+    (start - leading, colon_end + trailing)
+}
+
+fn preceding_padding(text: &str, start: usize) -> usize {
+    text[..start]
+        .chars()
+        .next_back()
+        .filter(|character| character.is_whitespace())
+        .map(char::len_utf8)
+        .unwrap_or(0)
+}
+
+fn following_padding(text: &str, end: usize) -> usize {
+    text[end..]
+        .chars()
+        .next()
+        .filter(|character| character.is_whitespace())
+        .map(char::len_utf8)
+        .unwrap_or(0)
+}
+
+fn skip_whitespace(text: &str, start: usize) -> usize {
+    text[start..]
+        .char_indices()
+        .find(|(_, character)| !character.is_whitespace())
+        .map(|(offset, _)| start + offset)
+        .unwrap_or(text.len())
 }
 
 fn has_word_boundaries(text: &str, start: usize, end: usize) -> bool {
@@ -191,75 +254,4 @@ fn is_word_character(character: char) -> bool {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn finds_markers_with_utf8_byte_columns() {
-        let markers = scan("é TODO and FIXME\nNOTE");
-        assert_eq!(markers.len(), 3);
-        assert_eq!(
-            markers[0],
-            Marker {
-                line: 0,
-                start: 3,
-                end: 7,
-                kind: Kind::Todo,
-            }
-        );
-        assert_eq!(
-            markers[1],
-            Marker {
-                line: 0,
-                start: 12,
-                end: 17,
-                kind: Kind::Fixme,
-            }
-        );
-        assert_eq!(
-            markers[2],
-            Marker {
-                line: 1,
-                start: 0,
-                end: 4,
-                kind: Kind::Note,
-            }
-        );
-    }
-
-    #[test]
-    fn ignores_embedded_and_lowercase_words() {
-        assert!(scan("TODOLIST todo Todo").is_empty());
-    }
-
-    #[test]
-    fn accepts_punctuation_boundaries() {
-        assert_eq!(scan("TODO: fix").len(), 1);
-        assert_eq!(scan("(FIXME)").len(), 1);
-    }
-
-    #[test]
-    fn sign_lines_keep_the_highest_severity() {
-        let markers = scan("TODO FIXME\nNOTE");
-        assert_eq!(
-            sign_lines(&markers),
-            vec![(0, Kind::Fixme), (1, Kind::Note)]
-        );
-    }
-
-    #[test]
-    fn counts_summarize_each_kind() {
-        let counts = Counts::from_markers(&scan("TODO TODO FIXME NOTE"));
-        assert_eq!(counts.total(), 4);
-        assert_eq!(counts.message(), "4 markers: TODO 2, FIXME 1, NOTE 1");
-        assert_eq!(counts.status_text(), "markers 4");
-        assert_eq!(counts.style(), DecorationStyle::Error);
-    }
-
-    #[test]
-    fn empty_counts_are_muted() {
-        let counts = Counts::default();
-        assert_eq!(counts.message(), "no markers");
-        assert_eq!(counts.style(), DecorationStyle::Muted);
-    }
-}
+mod tests;

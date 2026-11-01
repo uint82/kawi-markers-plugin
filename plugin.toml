@@ -1,10 +1,10 @@
 name = "markers"
-version = "0.1.1"
+version = "0.1.2"
 protocol = 1
 runtime = "wasm"
 description = "Highlight TODO markers, add gutter signs, and show marker counts"
 component = "markers.wasm"
-sha256 = "sha256:76a89828e3ae6457e7027a4ae7b68154a9a19329e93fcab834b162a8a5a148c2"
+sha256 = "sha256:e7a36f56a080544ab40342ca72ec82db0cc80bd78345f45ab28261b35a3ce2df"
 timeout_ms = 5000
 subscribes = ["buffer_changed", "buffer_opened", "file_opened", "file_saved", "buffer_closed"]
 
@@ -16,6 +16,66 @@ buffer_changed = 50
 "editor.decorations" = true
 "ui.message" = true
 "ui.statusline" = true
+
+[[decorations]]
+id = "todo"
+color = "info"
+fill = "both"
+italic = true
+
+[[decorations]]
+id = "todo_text"
+color = "info"
+fill = "foreground"
+italic = true
+
+[[decorations]]
+id = "fixme"
+color = "error"
+fill = "both"
+italic = true
+
+[[decorations]]
+id = "fixme_text"
+color = "error"
+fill = "foreground"
+italic = true
+
+[[decorations]]
+id = "hack"
+color = "warning"
+fill = "both"
+italic = true
+
+[[decorations]]
+id = "hack_text"
+color = "warning"
+fill = "foreground"
+italic = true
+
+[[decorations]]
+id = "note"
+color = "success"
+fill = "both"
+italic = true
+
+[[decorations]]
+id = "note_text"
+color = "success"
+fill = "foreground"
+italic = true
+
+[[decorations]]
+id = "xxx"
+color = "accent"
+fill = "both"
+italic = true
+
+[[decorations]]
+id = "xxx_text"
+color = "accent"
+fill = "foreground"
+italic = true
 
 [settings.show_signs]
 type = "boolean"
