@@ -1,0 +1,39 @@
+name = "markers"
+version = "0.1.0"
+protocol = 1
+runtime = "wasm"
+description = "Highlight TODO markers, add gutter signs, and show marker counts"
+component = "markers.wasm"
+sha256 = "sha256:bfbfae50f451c22907a82a792eadd5f684db20eed8613e77f71be852f3ac616c"
+timeout_ms = 5000
+subscribes = ["buffer_changed", "buffer_opened", "file_opened", "file_saved", "buffer_closed"]
+
+[debounce]
+buffer_changed = 200
+
+[capabilities]
+"editor.read" = true
+"editor.decorations" = true
+"ui.message" = true
+"ui.statusline" = true
+
+[settings.show_signs]
+type = "boolean"
+default = true
+description = "Show one gutter sign per line that contains a marker"
+
+[settings.show_virtual_text]
+type = "boolean"
+default = true
+description = "Show a marker summary after the first marker line"
+
+[[activation_events]]
+event = "on_startup"
+
+[[activation_events]]
+event = "on_command"
+
+[[commands]]
+id = "scan"
+title = "Scan for TODO markers"
+description = "Refresh marker highlights, gutter signs, and status line counts"
