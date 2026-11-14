@@ -33,7 +33,7 @@ If this plugin is published at `github.com/OWNER/kawi-markers-plugin`, install i
 To install a specific release:
 
 ```text
-:plugin install OWNER/kawi-markers-plugin@v0.1.3
+:plugin install OWNER/kawi-markers-plugin@v0.1.4
 ```
 
 Replace `OWNER` with the GitHub account that owns the repository.
@@ -82,6 +82,6 @@ The plugin does not write to the buffer, read files, spawn processes, or use the
 
 - Plugin API: 1
 - Runtime: WebAssembly
-- SDK: `kawi-plugin-sdk` 0.5.0
+- SDK: `kawi-plugin-sdk` 0.7.0
 
 For local development and release steps, see [DEVELOPING.md](DEVELOPING.md).
